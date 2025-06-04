@@ -142,7 +142,3 @@ Visit [http://localhost:3000](http://localhost:3000)
 
 Feel free to open issues or submit pull requests.
 Want help extending this project with a frontend or advanced features like **title transfer**, **role-based dashboards**, or **IPFS document storage**? Let’s build it!
-
----
-
-Let me know if you'd like a badge-style top section, feature GIFs, or if you're ready to start the **React dashboard or testnet deployment**!
