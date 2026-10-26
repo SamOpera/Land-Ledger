@@ -1,144 +1,72 @@
-# 🧾 Land-Ledger
+# Land-Ledger
 
-**Land-Ledger** is a decentralized land registration and verification platform built using **blockchain technology**. It ensures **secure**, **transparent**, and **tamper-proof** land ownership records — with RESTful API endpoints exposed for seamless integration by real estate agencies, government bodies, and individual users.
+**Check a land title before you pay.** An on-chain land title registry on Ethereum, with a free public check that any buyer can run.
 
----
+Land fraud in Nigeria usually takes one of two forms: the same plot sold to several buyers, or land sold by someone who doesn't own it. Land-Ledger makes both impossible to hide:
 
-## 🔍 Key Features
+- **One plan, one parcel.** The land bureau approves each survey plan, and a plan can be registered exactly once. A second registration on the same plan is refused by the contract.
+- **Two keys to move land.** The owner offers the parcel to a buyer, then a registrar approves. Neither can move land alone, and only one sale can be open at a time.
+- **Disputes freeze the title.** A registrar can flag a claim, and nothing moves until it is cleared.
+- **No personal data on-chain.** Deeds stay off-chain. The ledger keeps only their hash, so a buyer can check that the papers they were handed match the registered ones. The file is hashed in the browser and never uploaded.
 
-🏠 **Register and Verify Land Ownership**
-Securely register land parcels and verify ownership through immutable smart contracts.
+![Verifying a title](docs/verify.png)
 
-🛡️ **Fraud Prevention**
-Eliminates double registrations and forgery using blockchain-backed proofs.
+## Try it
 
-📄 **RESTful API with Swagger UI**
-Easily test and integrate endpoints through interactive documentation.
+The app has two modes:
 
-⚙️ **Modular Architecture**
-Smart contract logic and API layers are cleanly separated for easy upgrades.
+- **Demo**: an in-browser copy of the contract with the same rules, errors and events. Switch between the bureau, a registrar, a landowner and a buyer and run the whole flow. No wallet needed.
+- **Sepolia**: the real contract. Verifying reads through a public node, so it needs no wallet either. Bureau, registrar and owner actions go through MetaMask.
 
-🗃️ **Blockchain-Based Storage**
-All land data is stored and validated on-chain (Ethereum), ensuring auditability.
+## The contract
 
----
+[`contracts/contracts/LandLedger.sol`](contracts/contracts/LandLedger.sol), Solidity 0.8.26.
 
-## 🧑‍💼 How Realtors Can Use It
+| Role | Can do |
+| --- | --- |
+| Bureau (the deployer) | Appoint or remove registrars, approve survey plans |
+| Registrar | Register a parcel on an approved plan, approve a sale, flag or clear a dispute |
+| Owner | Offer their parcel to a buyer, withdraw the offer |
+| Anyone | `verify(id)`: owner, disputed, sale pending, times sold |
 
-| Realtor Task               | Land-Ledger Support                                                          |
-| -------------------------- | ---------------------------------------------------------------------------- |
-| Registering New Properties | Register land via `/registerLand` and store data securely on the blockchain. |
-| Verifying Ownership        | Instantly check ownership with `/verifyOwner/:address` or `/land/:id`.       |
-| Fraud & Dispute Reduction  | Immutable smart contract data ensures trust in ownership records.            |
-| Future Transfers (Roadmap) | Will support ownership transfers and historical lookups.                     |
+Every change emits an event, so a title's full history is readable from the logs. Errors are custom errors (`PlanNotApproved`, `UnderDispute`, `TransferPending`, ...), which the app turns into plain sentences.
 
----
+Survey plan numbers are stored as `keccak256` of a normal form (trimmed, spaces removed, upper case), so `la/1234/2024` and `LA/1234/2024` find the same plan.
 
-## 📁 Project Structure
-
-```bash
-Land-Ledger/
-├── index.js           # Blockchain interaction logic (Web3.js + smart contract)
-├── server.js          # Express RESTful API server
-├── networks.js        # Web3 and Ethereum network configuration
-├── swagger.json       # API documentation spec for Swagger UI
-├── package.json       # Project metadata and dependencies
-├── README.md          # Project overview and usage
-└── todo.md            # Feature roadmap
-```
-
----
-
-## ⚙️ How It Works
-
-1. Users interact with REST API endpoints exposed via `server.js`.
-2. Backend functions in `index.js` trigger smart contract methods.
-3. Web3.js communicates with the Ethereum network to:
-
-   * Register land
-   * Verify ownership
-   * Fetch land details
-4. Swagger UI provides a testable API interface at `/docs`.
-
----
-
-## 🚀 Getting Started
-
-### 1. Clone the Repository
+## Tests
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Land-Ledger.git
-cd Land-Ledger
+# contract: 18 Hardhat tests
+cd contracts && npm install --legacy-peer-deps && npx hardhat test
+
+# app: the demo chain follows the contract's rules, lookup, plan hashing
+npm install && npm test
 ```
 
-### 2. Install Dependencies
+Both suites run in GitHub Actions on every push.
+
+## Run the app
 
 ```bash
 npm install
+npm run dev
 ```
 
-### 3. Start the Server
+To point the Sepolia mode at your own deployment, set:
 
-```bash
-node server.js
+```
+NEXT_PUBLIC_LANDLEDGER_ADDRESS=0x...
+NEXT_PUBLIC_LANDLEDGER_DEPLOY_BLOCK=<block it was deployed in>
 ```
 
-Visit [http://localhost:3000](http://localhost:3000)
+The app is a static export (`out/`), so it can be hosted anywhere.
 
----
+## What changed from v1
 
-## 📚 API Documentation (Swagger UI)
+v1 (kept in [`legacy-v1/`](legacy-v1)) was a Truffle project with two serious problems: `registrarReg` had no access check, so anyone could register themselves as a registrar, and it wrote family names, phone numbers and BVNs to the public chain. v2 is a rewrite: role checks on every action, no personal data on-chain, one registration per survey plan, two-step transfers, dispute freezes, custom errors, full tests, and a public verify page.
 
-* Visit: [http://localhost:3000/docs](http://localhost:3000/docs)
-* Interact with endpoints to:
+## Author
 
-  * Register land
-  * View land details
-  * Verify ownership
+Samson Olakeye ([@SamOpera](https://github.com/SamOpera)), blockchain engineer, Economics + Computer Science. [samsonolakeye.com](https://samsonolakeye.com)
 
----
-
-## 📌 Example API Endpoints
-
-| Method | Endpoint                | Description                        |
-| ------ | ----------------------- | ---------------------------------- |
-| POST   | `/registerLand`         | Register a new land parcel         |
-| GET    | `/land/:id`             | Fetch land details by land ID      |
-| GET    | `/verifyOwner/:address` | Verify ownership by wallet address |
-
----
-
-## 📦 Built With
-
-* **Node.js** – Server runtime
-* **Express.js** – REST API framework
-* **Web3.js** – Blockchain communication
-* **Ethereum** – Smart contract backend
-* **Swagger** – API visualization & documentation
-
----
-
-## ✅ Roadmap (`todo.md`)
-
-* ✅ Build REST API with blockchain integration
-* ⏳ Add frontend dashboard for land registry
-* ⏳ Implement smart contract event listeners
-* ⏳ Improve validation and error handling
-* ⏳ Deploy to Ethereum testnet (Goerli)
-* ⏳ Add ownership transfer functionality
-* ⏳ IPFS integration for document uploads
-* ⏳ User/realtor authentication & role-based access
-
----
-
-## 👤 Author
-
-**SamOpera (Samson Olakeye)**
-🔗 [GitHub](https://github.com/SamOpera) | [LinkedIn](https://www.linkedin.com/in/samsonolakeye)
-
----
-
-## 📬 Contributions & Feedback
-
-Feel free to open issues or submit pull requests.
-Want help extending this project with a frontend or advanced features like **title transfer**, **role-based dashboards**, or **IPFS document storage**? Let’s build it!
+MIT licensed.
