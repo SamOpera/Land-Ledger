@@ -61,7 +61,8 @@ export const errorText: Record<string, string> = {
   NotOwner: "Only the current owner of this parcel can do that.",
   ZeroAddress: "Enter a valid wallet address.",
   EmptyValue: "Fill in every field before sending.",
-  PlanNotApproved: "That survey plan isn’t approved, or a parcel is already registered on it.",
+  PlanNotApproved: "That survey plan hasn’t been approved yet. The land bureau must approve it before a parcel can be registered on it.",
+  PlanUsed: "A parcel is already registered on that survey plan, so it can’t be registered again.",
   PlanAlreadyKnown: "That survey plan is already on the ledger.",
   UnknownParcel: "No parcel with that number is registered.",
   TransferPending: "This parcel already has a sale waiting for approval.",
@@ -115,6 +116,19 @@ export function titleStatus(p: Parcel): "clear" | "disputed" | "pending" {
   if (p.disputed) return "disputed";
   if (p.pendingBuyer !== ZERO) return "pending";
   return "clear";
+}
+
+export type PlanCheck = "empty" | "address" | "approved" | "used" | "unknown";
+
+/** What the ledger knows about a typed survey plan number, before anything is sent. */
+export function checkPlan(plans: Plan[], planNumber: string): PlanCheck {
+  const q = planNumber.trim();
+  if (!q) return "empty";
+  if (/^0x[0-9a-fA-F]{6,}$/.test(q)) return "address";
+  const hash = planHash(q);
+  const plan = plans.find((p) => p.hash === hash);
+  if (!plan) return "unknown";
+  return plan.status === PlanStatus.Used ? "used" : "approved";
 }
 
 /** Find a parcel by its number ("3", "#3") or by its survey plan number ("LA/1234/2024"). */

@@ -94,6 +94,8 @@ export function toContractError(e: unknown): Error {
   if (typeof data === "string" && data.startsWith("0x")) {
     try {
       const parsed = iface.parseError(data);
+      // PlanNotApproved carries the plan's status: 2 means it was already used.
+      if (parsed?.name === "PlanNotApproved" && Number(parsed.args[0]) === 2) return new ContractError("PlanUsed");
       if (parsed) return new ContractError(parsed.name);
     } catch {
       /* not one of ours */

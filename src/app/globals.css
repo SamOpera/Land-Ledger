@@ -739,6 +739,23 @@ section {
   margin-bottom: 8px;
 }
 
+.hint {
+  margin-top: 6px;
+  font-size: 0.8125rem;
+}
+.stack .hint {
+  margin-top: -2px;
+}
+.hint--ok {
+  color: var(--ok);
+}
+.hint--bad {
+  color: var(--bad);
+}
+.hint--meta {
+  color: var(--text-3);
+}
+
 /* ---------- Register ---------- */
 .grid2 {
   display: grid;

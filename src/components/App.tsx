@@ -8,8 +8,10 @@ import {
   ChainEvent,
   ChainState,
   Parcel,
+  PlanCheck,
   PlanStatus,
   ZERO,
+  checkPlan,
   fileHash,
   isAddress,
   isHash,
@@ -464,11 +466,29 @@ function Feed({ events, live }: { events: ChainEvent[]; live: boolean }) {
   );
 }
 
+const planHint: Record<PlanCheck, { text: string; tone: "ok" | "bad" | "meta" } | null> = {
+  empty: null,
+  address: { text: "That looks like a wallet address. Enter the survey plan number, e.g. LA/1234/2024.", tone: "bad" },
+  approved: { text: "Approved and not yet registered.", tone: "ok" },
+  used: { text: "A parcel is already registered on this plan.", tone: "bad" },
+  unknown: { text: "Not approved yet.", tone: "meta" },
+};
+
+function PlanHint({ check, forBureau }: { check: PlanCheck; forBureau?: boolean }) {
+  let hint = planHint[check];
+  if (!hint) return null;
+  if (forBureau && check === "unknown") hint = { text: "New plan. Approve it, then a registrar can register one parcel on it.", tone: "ok" };
+  if (forBureau && check === "approved") hint = { text: "Already approved.", tone: "meta" };
+  if (!forBureau && check === "unknown") hint = { text: "Not approved yet. The land bureau must approve this plan first.", tone: "bad" };
+  return <p className={`hint hint--${hint.tone}`}>{hint.text}</p>;
+}
+
 type Run = (label: string, fn: (a: Actions) => Promise<string>) => Promise<boolean | void>;
 
 function BureauPanel({ state, busy, run }: { state: ChainState; busy: boolean; run: Run }) {
   const [registrar, setRegistrar] = useState("");
   const [plan, setPlan] = useState("");
+  const planCheck = checkPlan(state.plans, plan);
   const approved = state.plans.filter((p) => p.status === PlanStatus.Approved);
   return (
     <div className="panel">
@@ -481,11 +501,12 @@ function BureauPanel({ state, busy, run }: { state: ChainState; busy: boolean; r
           if (await run("Approve survey plan", (a) => a.approveSurveyPlan(plan))) setPlan("");
         }}
       >
-        <input className="input" placeholder="Survey plan number, e.g. LA/4410/2026" value={plan} onChange={(e) => setPlan(e.target.value)} required />
-        <button className="btn btn--gold btn--sm" disabled={busy || !plan.trim()}>
+        <input className="input" placeholder="Survey plan number, e.g. LA/4410/2026" value={plan} onChange={(e) => setPlan(e.target.value)} required aria-label="Survey plan number" />
+        <button className="btn btn--gold btn--sm" disabled={busy || planCheck !== "unknown"}>
           Approve plan
         </button>
       </form>
+      <PlanHint check={planCheck} forBureau />
       <form
         className="row"
         onSubmit={async (e) => {
@@ -526,7 +547,8 @@ function RegistrarPanel({ state, busy, run }: { state: ChainState; busy: boolean
   const [reason, setReason] = useState<Record<number, string>>({});
   const pending = state.parcels.filter((p) => p.pendingBuyer !== ZERO);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
-  const ready = isAddress(f.owner) && f.plan.trim() && isHash(f.doc) && f.location.trim() && Number(f.area) > 0;
+  const planCheck = checkPlan(state.plans, f.plan);
+  const ready = isAddress(f.owner) && planCheck === "approved" && isHash(f.doc) && f.location.trim() && Number(f.area) > 0;
 
   return (
     <div className="panel">
@@ -545,9 +567,10 @@ function RegistrarPanel({ state, busy, run }: { state: ChainState; busy: boolean
       >
         <input className="input mono" placeholder="Owner wallet 0x…" list="accounts" value={f.owner} onChange={set("owner")} />
         <div className="row">
-          <input className="input" placeholder="Survey plan number" value={f.plan} onChange={set("plan")} />
-          <input className="input input--num" placeholder="Area m²" inputMode="numeric" value={f.area} onChange={set("area")} />
+          <input className="input" placeholder="Survey plan number" value={f.plan} onChange={set("plan")} aria-label="Survey plan number" />
+          <input className="input input--num" placeholder="Area m²" inputMode="numeric" value={f.area} onChange={set("area")} aria-label="Area in square metres" />
         </div>
+        <PlanHint check={planCheck} />
         <input className="input" placeholder="Location, e.g. Plot 4, Block B, Epe, Lagos" value={f.location} onChange={set("location")} />
         <label className="drop drop--sm">
           <input

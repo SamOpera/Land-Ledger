@@ -131,6 +131,7 @@ export class DemoChain {
     if (!documentHash || documentHash === ZERO_HASH || !location.trim() || !(areaSqm > 0)) throw new ContractError("EmptyValue");
     const hash = planHash(planNumber);
     const plan = this.state.plans.find((p) => p.hash === hash);
+    if (plan?.status === PlanStatus.Used) throw new ContractError("PlanUsed");
     if (!plan || plan.status !== PlanStatus.Approved) throw new ContractError("PlanNotApproved");
     const id = this.state.parcels.length + 1;
     const parcel: Parcel = {

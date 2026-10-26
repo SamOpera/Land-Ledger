@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { id } from "ethers"
 
-import { ContractError, ZERO, lookup, planHash, titleStatus } from "../src/lib/chain"
+import { ContractError, ZERO, checkPlan, lookup, planHash, titleStatus } from "../src/lib/chain"
 import { DemoChain, demoAccounts } from "../src/lib/demo"
 
 const { bureau, registrar, ada, bola } = demoAccounts
@@ -53,7 +53,7 @@ describe("demo chain follows the contract's rules", () => {
     const { as, chain } = setup()
     expect(await code(as("registrar").registerParcel(ada.address, "LA/3310/2025", DOC, "Plot 4, Epe", 500))).toBe("ok")
     expect(await code(as("registrar").registerParcel(bola.address, "LA/3310/2025", DOC, "Plot 4, Epe", 500))).toBe(
-      "PlanNotApproved"
+      "PlanUsed"
     )
     expect(await code(as("registrar").registerParcel(ada.address, "FAKE/1", DOC, "Nowhere", 1))).toBe("PlanNotApproved")
     expect(await code(as("ada").registerParcel(ada.address, "LA/3310/2025", DOC, "x", 1))).toBe("NotRegistrar")
@@ -109,5 +109,17 @@ describe("verify lookup", () => {
     expect(lookup(parcels, "99")).toBeNull()
     expect(lookup(parcels, "LA/0000/2020")).toBeNull()
     expect(lookup(parcels, "  ")).toBeNull()
+  })
+})
+
+describe("plan check before sending", () => {
+  it("tells the bureau and registrar what the ledger knows about a plan", () => {
+    const { chain } = setup()
+    const plans = chain.getState().plans
+    expect(checkPlan(plans, "")).toBe("empty")
+    expect(checkPlan(plans, "0x0800f305140235E0FD8e7adB83c15d3f6dD4C0e8")).toBe("address")
+    expect(checkPlan(plans, "la/3310/2025")).toBe("approved")
+    expect(checkPlan(plans, "LA/1234/2024")).toBe("used")
+    expect(checkPlan(plans, "LA/7777/2026")).toBe("unknown")
   })
 })
