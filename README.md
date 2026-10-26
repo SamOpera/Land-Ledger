@@ -16,7 +16,7 @@ Land fraud in Nigeria usually takes one of two forms: the same plot sold to seve
 The app has two modes:
 
 - **Demo**: an in-browser copy of the contract with the same rules, errors and events. Switch between the bureau, a registrar, a landowner and a buyer and run the whole flow. No wallet needed.
-- **Sepolia**: the real contract. Verifying reads through a public node, so it needs no wallet either. Bureau, registrar and owner actions go through MetaMask.
+- **Sepolia**: the real contract, deployed at [`0xbce3f1ea38642f75aeaba6bcdba4d88243fca911`](https://sepolia.etherscan.io/address/0xbce3f1ea38642f75aeaba6bcdba4d88243fca911). Verifying reads through a public node, so it needs no wallet either. Bureau, registrar and owner actions go through MetaMask.
 
 ## The contract
 

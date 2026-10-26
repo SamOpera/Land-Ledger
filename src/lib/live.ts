@@ -11,10 +11,10 @@ export const SEPOLIA = {
   explorer: "https://sepolia.etherscan.io",
 };
 
-// The public Sepolia deployment. Empty until the contract is deployed; environment
+// The public Sepolia deployment. Environment
 // variables override it, for example to point a fork at your own deployment.
-const DEFAULT_ADDRESS = "";
-const DEFAULT_DEPLOY_BLOCK = 0;
+const DEFAULT_ADDRESS = "0xbce3f1ea38642f75aeaba6bcdba4d88243fca911";
+const DEFAULT_DEPLOY_BLOCK = 12000891;
 
 export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_LANDLEDGER_ADDRESS || DEFAULT_ADDRESS;
 const DEPLOY_BLOCK = Number(process.env.NEXT_PUBLIC_LANDLEDGER_DEPLOY_BLOCK || DEFAULT_DEPLOY_BLOCK);
