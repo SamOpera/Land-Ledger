@@ -13,6 +13,8 @@ Land fraud in Nigeria usually takes one of two forms: the same plot sold to seve
 
 ## Try it
 
+**Live app: [landedger.vercel.app](https://landedger.vercel.app)**
+
 The app has two modes:
 
 - **Demo**: an in-browser copy of the contract with the same rules, errors and events. Switch between the bureau, a registrar, a landowner and a buyer and run the whole flow. No wallet needed.

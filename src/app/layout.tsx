@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const url = "https://land-ledger.vercel.app";
+const url = "https://landedger.vercel.app";
 const title = "Land-Ledger: check a land title before you pay";
 const description =
   "Land-Ledger is an on-chain land title registry by Samson Olakeye (SamOpera). Each survey plan is registered once, land moves only with the owner's offer and a registrar's approval, and anyone can verify a title for free. Tested Solidity on Ethereum Sepolia, with a demo you can try without a wallet.";
